@@ -1,0 +1,75 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Homework template. Don't copy by hand: from the repo root run
+%   make new-hw N=3 [DUE="Mon Oct 19, 11:59 PM PT"]
+% which creates homework/hw3/hw3.tex from this file with the fields filled in.
+% Shared macros/environments live in tex/course.sty.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt]{article}
+\makeatletter\def\input@path{{../../tex/}}\makeatother  % find tex/course.sty
+\usepackage{course}
+
+% ---------------------------------------------------------------- Assignment info
+\newcommand{\hwnum}{N}
+\newcommand{\duedate}{Day Mon DD, 11:59 PM PT}
+% \newcommand{\collaborators}{None}  % uncomment (and the row below) to list collaborators
+
+\setlist[enumerate]{label=(\alph*)}
+
+% ---------------------------------------------------------------- Header / footer
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\studentname\ (\studentpid)}
+\chead{\coursecode\ --- HW \hwnum}
+\rhead{\today}
+\cfoot{\thepage\ / \pageref{LastPage}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{center}
+  {\Large\bfseries \coursename}\\[0.5ex]
+  {\large Homework \hwnum}\\[1ex]
+  \begin{tabular}{rl}
+    \textbf{Name:} & \studentname \\
+    \textbf{PID:} & \studentpid \\
+    \textbf{Email:} & \href{mailto:\studentemail}{\studentemail} \\
+    \textbf{Due:} & \duedate
+    % \\ \textbf{Collaborators:} & \collaborators
+  \end{tabular}
+\end{center}
+\hrule\bigskip
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{problem}{N.1}{Example problem}{0}
+  Let $X$ and $Y$ be discrete random variables. Show that
+  \[ \P(X \given Y) = \frac{\P(Y \given X)\,\P(X)}{\P(Y)}. \]
+  \begin{enumerate}
+    \item First sub-part.
+    \item Second sub-part.
+  \end{enumerate}
+\end{problem}
+
+\begin{solution}
+  \part{a}
+  By the product rule,
+  \begin{align*}
+    \P(X, Y) &= \P(X \given Y)\,\P(Y) = \P(Y \given X)\,\P(X).
+  \end{align*}
+
+  \part{b}
+  Example belief network:
+  \begin{center}
+    \begin{tikzpicture}
+      \node[bnnode] (X) {$X$};
+      \node[bnnode, below left=1cm and 0.6cm of X] (Y) {$Y$};
+      \node[bnnode, below right=1cm and 0.6cm of X] (Z) {$Z$};
+      \draw[bnedge] (X) -- (Y);
+      \draw[bnedge] (X) -- (Z);
+    \end{tikzpicture}
+  \end{center}
+\end{solution}
+
+\clearpage % one problem per page makes Gradescope page-matching easy
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

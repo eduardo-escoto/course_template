@@ -1,0 +1,246 @@
+# [[ course_code ]] — [[ course_title ]] ([[ term ]])
+
+Homework write-ups[% if use_python %], lecture notes, and code[% else %] and lecture notes[% endif %] for [[ course_code ]] at [[ school ]]. Everything is driven from one
+root `Makefile`, and every LaTeX document shares one preamble, `tex/course.sty`.
+
+> Rules for AI assistants (and the detailed conventions) are in [`AGENTS.md`](AGENTS.md).
+
+## Contents
+
+- [Setup](#setup)
+- [Layout](#layout)
+- [Day-to-day workflows](#day-to-day-workflows)
+  - [Starting a homework](#starting-a-homework)
+  - [After a lecture](#after-a-lecture)
+  - [Building](#building)
+  - [VS Code](#vs-code)
+[% if use_python %]
+  - [Python](#python)
+[% endif %]
+- [LaTeX reference (`course.sty`)](#latex-reference-coursesty)
+- [How the machinery works](#how-the-machinery-works)
+- [Gotchas](#gotchas)
+
+## Setup
+
+You need a TeX distribution with `latexmk` (MacTeX)[% if use_python %], plus [uv](https://docs.astral.sh/uv/)[% endif %].
+
+```sh
+[% if use_python %]
+uv sync      # creates .venv/ in the repo from pyproject.toml + uv.lock
+[% endif %]
+make         # builds every homework and set of lecture notes
+```
+
+Run every command from the repo root.
+
+This repo was generated from a [Copier](https://copier.readthedocs.io) template (answers in
+`.copier-answers.yml`). To pull in later template improvements, commit first, then run
+`uvx --python 3.12 copier update`.
+
+## Layout
+
+```
+tex/                  shared preamble (course.sty) + templates for new documents
+scripts/course.sh     scaffolding logic behind `make new-hw` / `new-lec` / `slides`
+course/               instructor material (read-only)
+  slides/             lecNN-<topic>.pdf, lecNN-<topic>-annotated.pdf
+  readings/
+homework/hwN/
+  hwN.tex             my solutions          -> build/hwN.pdf  (submitted to Gradescope)
+  figures/  code/     my figures; my working copy of starter code + its data
+  handout/            course-provided files (read-only): [[ hw_pdf_pattern | replace('{N}', 'N') ]], main.tex, ...
+notes/NN-<topic>/
+  lecNN.tex           my lecture notes      -> build/lecNN.pdf
+  figures/
+exams/  projects/
+```
+
+**Rule of thumb:** anything the course gives you goes in `course/` or in the assignment's
+`handout/`, and nothing there is ever edited. Everything else is yours.
+
+## Day-to-day workflows
+
+### Starting a homework
+
+```sh
+make new-hw N=3 DUE="Mon Oct 19, 11:59 PM PT"
+```
+
+This creates `homework/hw3/` containing `hw3.tex` (homework number and due date already
+filled in), plus `figures/`, `code/` and `handout/`. Then:
+
+1. Put the course's files into `handout/`. Rename the assignment PDF to
+   `[[ hw_pdf_pattern | replace('{N}', '3') ]]`, **not** `hw3.pdf` (see [Gotchas](#gotchas)).
+2. Copy starter code **and its data files** into `code/`. `handout/` keeps the untouched
+   originals so you can diff against them.
+3. Transcribe each problem verbatim into a `problem` box followed by a `solution` block, and end
+   each problem with `\clearpage` (one problem per page for Gradescope matching). Copy figures into
+   `figures/` with clean names, or redraw small graphs in TikZ (see
+   [Belief networks](#belief-networks)).
+4. `make watch-hw3` while writing. Submit `homework/hw3/build/hw3.pdf`.
+
+### After a lecture
+
+1. Download the slides into `course/slides/` with their original names (`[[ slide_prefix ]] 06.pdf`, and/or
+   the annotated version with `[[ annotated_marker ]]` in its name). The expected names are set in
+   `scripts/course.conf`.
+2. Create the notes:
+
+   ```sh
+   make new-lec TOPIC="Junction Trees"                    # next number, today's date
+   make new-lec TOPIC="Junction Trees" N=6 DATE="Oct 13, 2026"
+   make new-lec TOPIC="Junction Trees" DATE=""            # no date in the header
+   ```
+
+   This creates `notes/06-junction-trees/lec06.tex` and then files the slides as
+   `course/slides/lec06-junction-trees.pdf` / `lec06-junction-trees-annotated.pdf`.
+3. If the slides show up after the notes folder already exists, run `make slides`.
+   It renames every `Lecture NN*.pdf` it can match to a `notes/NN-*/` folder and never
+   overwrites existing files.
+
+### Building
+
+| Command | Effect |
+| --- | --- |
+| `make` | build everything |
+| `make hw2`, `make lec03` | build one document → `<its dir>/build/<name>.pdf` |
+| `make homework`, `make notes` | build all of one kind |
+| `make watch-hw2` | rebuild on every save (Ctrl+C to stop) |
+| `make clean-hw2`, `make clean` | remove aux files, keep PDFs and SyncTeX |
+| `make distclean` | delete every `build/` folder |
+
+All output (PDF, `.synctex.gz`, aux files) goes to the document's `build/` folder, which is
+gitignored. To call latexmk yourself, run it from the document's folder and **always** pass
+`-outdir=build`. Otherwise aux files spill into the source folder.
+
+New documents are picked up automatically: the Makefile globs `homework/hw*/hw*.tex` and
+`notes/NN-*/lecNN.tex`, so there's nothing to register.
+
+### VS Code
+
+`.vscode/` configures LaTeX Workshop to build on save into `build/`, open the PDF in a tab, and
+skip auto-cleaning so incremental rebuilds stay fast. SyncTeX works in both directions:
+Cmd+click in the PDF jumps to the source.
+
+Tasks (Cmd+Shift+B): **LaTeX: Compile**, **LaTeX: Clean**, **LaTeX: Compile + Clean**.
+[% if use_python %]
+
+The Python interpreter is set to `.venv/bin/python`. Terminal auto-activation is turned off on
+purpose, so use `uv run` in terminals.
+
+### Python
+
+The environment lives in the in-repo `.venv/` (gitignored) and is managed by uv. There is no
+direnv and nothing to activate.
+
+```sh
+uv add numpy scipy matplotlib              # add dependencies (updates pyproject.toml + uv.lock)
+uv run python homework/hw1/code/main.py   # run inside the env
+```
+
+Code goes in `homework/hwN/code/` or `projects/<name>/`. Fix random seeds, and save figures as
+PDF into the write-up's `figures/` so `\includegraphics{name}` picks them up directly.
+[% endif %]
+
+## LaTeX reference (`course.sty`)
+
+Every document lives exactly two levels below the root and starts with:
+
+```latex
+\documentclass[11pt]{article}
+\makeatletter\def\input@path{{../../tex/}}\makeatother  % find tex/course.sty
+\usepackage{course}
+```
+
+Course and student info (`\coursecode`, `\coursetitle`, `\coursename`, `\courseterm`,
+`\instructor`, `\studentname`, `\studentpid`, `\studentemail`) is defined once at the top of
+`course.sty`, and the templates' headers use it. Change something there and every document
+picks it up on the next build.
+
+### Homework
+
+```latex
+\begin{problem}{3.1}{Inference in a polytree}{6}   % number, title, points
+  ...statement, verbatim from the handout...
+  \begin{enumerate} \item ... \end{enumerate}       % labelled (a), (b), ...
+\end{problem}
+
+\begin{solution}
+  \part{a} ...                                      % run-in "(a)" heading
+  \part*{$(1) \iff (2)$} ...                        % heading without parentheses
+\end{solution}
+\clearpage
+```
+
+### Lecture notes
+
+| Environment | Use |
+| --- | --- |
+| `definition`, `theorem`, `lemma`, `proposition`, `corollary`, `claim`, `example`, `remark` | numbered per section (Definition 2.1, ...); `\begin{theorem}[Name]` |
+| `keyidea` | green box: takeaways (`[Title]` optional) |
+| `question` | orange box: things to ask or follow up on |
+| `aside` | gray box: rigor or connections beyond the lecture (`[Title]` optional) |
+| `\slide{12}` | gray "[slide 12]" pointer to the instructor's slides |
+
+Cross-reference with `\label{def:x}` + `\cref{def:x}`.
+
+### Math macros
+
+| Macro | Renders | Macro | Renders |
+| --- | --- | --- | --- |
+| `\P(X \given Y)` | P(X \| Y) | `\KL{p}{q}` | D_KL(p ‖ q) |
+| `\E`, `\Var`, `\Cov` | 𝔼, Var, Cov | `\ind{x > 0}` | 𝟙[x > 0] |
+| `X \indep Y \given Z` | X ⫫ Y \| Z | `\nindep` | not independent |
+| `\pa(X)` | pa(X) | `X_i \iid \Normal(0,1)` | iid ~ 𝒩 |
+| `\argmax`, `\argmin` | with limits underneath | `\R`, `\N`, `\eqdef` | ℝ, ℕ, ≔ |
+
+### Belief networks
+
+```latex
+\begin{tikzpicture}
+  \node[bnnode] (X) {$X$};
+  \node[bnnode, below left=1cm and 0.6cm of X] (Y) {$Y$};
+  \draw[bnedge] (X) -- (Y);
+\end{tikzpicture}
+```
+
+`bnnode` is filled with `probbg`, the problem-box background, so graphs drawn inside a problem
+blend in. The `bayesnet` library (`\node[latent]`, `\node[obs]`, `\edge`) is loaded too.
+
+### Code
+
+Use `\begin{lstlisting} ... \end{lstlisting}`. Python is the default language.
+
+### Adding macros
+
+If a macro would be useful in more than one document, add it to `tex/course.sty`. Don't add it
+to an individual `.tex` file. Also list it in `AGENTS.md`.
+
+## How the machinery works
+
+- **`Makefile`**: a thin wrapper. Build targets run
+  `latexmk -pdf -synctex=1 -interaction=nonstopmode -file-line-error -outdir=build` inside the
+  document's folder. latexmk tracks dependencies itself, so targets always run and latexmk
+  decides whether anything needs rebuilding. Scaffolding targets call `scripts/course.sh`.
+- **`scripts/course.sh`**:
+  - `new-hw` / `new-lec` copy a template from `tex/` and strip its "how to use this template"
+    header. They then fill fields by rewriting `\newcommand{\hwnum}{...}`, `\duedate`,
+    `\lecnum`, `\lectopic` and `\lecdate` with `sed`, escaping LaTeX special characters in the
+    values. Neither one overwrites an existing document.
+  - `new-lec` numbers new notes one past the highest `notes/NN-*`, and slugifies the topic for the
+    folder name.
+  - `slides` takes the topic from the matching `notes/NN-<topic>/` folder.
+  - Course-specific names (slide prefix, annotated marker, official PDF pattern) live in
+    `scripts/course.conf`, which `course.sh` sources.
+- **Templates** (`tex/hw_template.tex`, `tex/lecture_template.tex`): edit these to change what
+  *future* documents look like. Existing documents aren't touched. Keep the
+  `\newcommand{\field}{...}` lines on single lines, because the script matches them by pattern.
+
+## Gotchas
+
+- **Never name anything `hwN.pdf` except the build output.** A build would overwrite an
+  official handout with that name. Official PDFs are `[[ hw_pdf_pattern | replace('{N}', 'N') ]]`.
+- **The filesystem is case-insensitive** (`Homework` == `homework`). Do case-only renames via a
+  temporary name.
+- The repo holds solutions and instructor material, so any git remote must be **private**.

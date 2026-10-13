@@ -1,0 +1,150 @@
+# Copier template for a course repo: LaTeX homework + lecture notes (+ optional Python).
+# See README.md for usage.
+
+_min_copier_version: "9.4.0"
+_subdirectory: template
+_answers_file: .copier-answers.yml
+_templates_suffix: .jinja
+
+# LaTeX is full of {{ }}, {% and {#1}, so Jinja uses square-bracket delimiters instead.
+# Only files ending in .jinja are rendered; everything else is copied verbatim.
+_envops:
+  variable_start_string: "[["
+  variable_end_string: "]]"
+  block_start_string: "[%"
+  block_end_string: "%]"
+  comment_start_string: "[#="
+  comment_end_string: "=#]"
+  keep_trailing_newline: true
+  trim_blocks: true
+  lstrip_blocks: true
+
+# ---------------------------------------------------------------- Course
+course_code:
+  type: str
+  help: Course code
+  placeholder: CSE 250A
+  validator: "[% if not course_code.strip() %]required[% endif %]"
+
+course_title:
+  type: str
+  help: Course title
+  placeholder: Probabilistic Reasoning and Learning
+  validator: "[% if not course_title.strip() %]required[% endif %]"
+
+cross_listed:
+  type: str
+  help: Cross-listed course code(s), if any (blank for none)
+  default: ""
+
+school:
+  type: str
+  help: School
+  default: UCSD
+
+term:
+  type: str
+  help: Term (season + year)
+  placeholder: Winter 2027
+  validator: "[% if not term.strip() %]required[% endif %]"
+
+term_code:
+  type: str
+  help: Short term code (used in file names)
+  default: >-
+    [%- set season = term.split()[0] | lower -%]
+    [[ {'fall': 'fa', 'winter': 'wi', 'spring': 'sp', 'summer': 'su'}.get(season, season[:2]) ]][[ term.split()[-1][-2:] ]]
+
+course_slug:
+  type: str
+  help: Short slug for the course (Python project name, default PDF pattern)
+  default: "[[ course_code | lower | replace(' ', '') ]]"
+
+instructor:
+  type: str
+  help: Instructor
+  validator: "[% if not instructor.strip() %]required[% endif %]"
+
+# ---------------------------------------------------------------- Student
+student_name:
+  type: str
+  help: Your name
+  validator: "[% if not student_name.strip() %]required[% endif %]"
+
+student_pid:
+  type: str
+  help: Your student ID (PID)
+  validator: "[% if not student_pid.strip() %]required[% endif %]"
+
+student_email:
+  type: str
+  help: Your email
+  validator: "[% if '@' not in student_email %]must be an email address[% endif %]"
+
+student_role:
+  type: str
+  help: How AGENTS.md should describe you (sets the level of explanations)
+  default: PhD student
+
+ai_guidance:
+  type: str
+  help: >-
+    Extra course-specific guidance for AI assistants, appended to AGENTS.md's intro
+    (blank for none), e.g. "Use precise measure-theoretic language where it helps."
+  default: ""
+
+# ---------------------------------------------------------------- Course materials
+hw_pdf_pattern:
+  type: str
+  help: >-
+    File name for each official homework PDF in handout/, with {N} for the number
+    (never plain hw{N}.pdf -- that's the build output's name)
+  default: "[[ course_slug ]]_[[ term_code ]]_hw{N}.pdf"
+  validator: >-
+    [% if '{N}' not in hw_pdf_pattern %]must contain {N}[% elif hw_pdf_pattern == 'hw{N}.pdf' %]clashes with the build output hw{N}.pdf[% endif %]
+
+slide_prefix:
+  type: str
+  help: 'Downloaded slides are named "<prefix> NN.pdf" -- the prefix'
+  default: Lecture
+
+annotated_marker:
+  type: str
+  help: Text in the file name that marks the annotated ("post") version of the slides
+  default: post
+
+# ---------------------------------------------------------------- Python
+use_python:
+  type: bool
+  help: Set up a uv Python environment (pyproject.toml, in-repo .venv/)?
+  default: true
+
+python_version:
+  type: str
+  help: Python version
+  default: "3.12"
+  when: "[[ use_python ]]"
+
+python_packages:
+  type: str
+  help: Initial dependencies, space-separated (uv add more later)
+  default: numpy scipy matplotlib
+  when: "[[ use_python ]]"
+
+_message_after_copy: |
+  Created [[ course_code ]] ([[ term ]]) in [[ _copier_conf.dst_path ]]. Next:
+
+    cd [[ _copier_conf.dst_path ]]
+    git init && git add -A && git commit -m "Scaffold from course template"
+  [% if use_python %]
+    uv sync                              # creates .venv/ and uv.lock
+  [% endif %]
+    make new-lec TOPIC="Course Overview"  # first lecture notes
+    make new-hw N=1 DUE="..."             # first homework
+
+  Keep any git remote PRIVATE: the repo will hold solutions and instructor material.
+  Pull later template changes with:  uvx --python 3.12 copier update
+
+_message_after_update: |
+  Updated from the course template. Review with `git diff`; resolve any *.rej files or
+  conflict markers, then commit.

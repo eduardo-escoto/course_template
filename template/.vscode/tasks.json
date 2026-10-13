@@ -1,0 +1,39 @@
+{
+  // Run via Cmd+Shift+P → "Tasks: Run Task", with a .tex file open.
+  // "LaTeX: Compile + Clean" is the default build task (Cmd+Shift+B).
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LaTeX: Compile",
+      "type": "shell",
+      "command": "latexmk",
+      "args": [
+        "-pdf",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-outdir=build",
+        "${fileBasename}"
+      ],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "revealProblems": "onProblem" }
+    },
+    {
+      "label": "LaTeX: Clean",
+      "type": "shell",
+      "command": "latexmk",
+      "args": ["-c", "-outdir=build", "${fileBasename}"],
+      "options": { "cwd": "${fileDirname}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "LaTeX: Compile + Clean",
+      "dependsOrder": "sequence",
+      "dependsOn": ["LaTeX: Compile", "LaTeX: Clean"],
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    }
+  ]
+}

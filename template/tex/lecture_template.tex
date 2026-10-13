@@ -1,0 +1,65 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lecture-notes template. Don't copy by hand: from the repo root run
+%   make new-lec TOPIC="Junction Trees" [N=6] [DATE="October 13, 2026"]
+% which creates notes/06-junction-trees/lec06.tex from this file with the fields filled in.
+% Shared macros/environments live in tex/course.sty.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[11pt]{article}
+\makeatletter\def\input@path{{../../tex/}}\makeatother  % find tex/course.sty
+\usepackage{course}
+
+% ---------------------------------------------------------------- Lecture info
+\newcommand{\lecnum}{NN}
+\newcommand{\lectopic}{Lecture Topic}
+\newcommand{\lecdate}{}                       % leave empty to omit
+
+\counterwithin{thm}{section}                  % Definition 2.1, Theorem 2.2, ...
+
+% ---------------------------------------------------------------- Header / footer
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\coursecode\ --- Lecture \lecnum}
+\rhead{\lectopic}
+\cfoot{\thepage\ / \pageref{LastPage}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{center}
+  {\small\scshape \coursename}\\[1ex]
+  {\LARGE\bfseries Lecture \lecnum: \lectopic}\\[1ex]
+  {\small \instructor\ifx\lecdate\empty\else\ \textbullet\ \lecdate\fi
+    \ \textbullet\ Notes by \studentname}
+\end{center}
+\hrule\bigskip
+
+% Fill in after lecture: the 2-4 things worth remembering.
+\begin{keyidea}[Summary]
+  \begin{itemize}[nosep]
+    \item
+  \end{itemize}
+\end{keyidea}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{First topic}
+
+% Quick reference (all defined in tex/course.sty; delete once you're used to them):
+%
+%   \begin{definition}[Name] ... \end{definition}     \label{def:x}, cite with \cref{def:x}
+%   \begin{theorem}[Name] ... \end{theorem}           + \begin{proof} ... \end{proof}
+%   lemma, proposition, corollary, claim, example, remark
+%   \begin{keyidea} ... \end{keyidea}                 green takeaway box
+%   \begin{question} ... \end{question}               orange: ask in OH / follow up
+%   \begin{aside}[Title] ... \end{aside}              gray: rigor / connections beyond lecture
+%   \slide{12}                                        pointer to the instructor's slide
+%   \includegraphics[width=0.5\linewidth]{name}      looks in figures/
+%
+%   Belief network:
+%     \begin{tikzpicture}
+%       \node[bnnode] (A) {$A$};  \node[bnnode, right=1cm of A] (B) {$B$};
+%       \draw[bnedge] (A) -- (B);
+%     \end{tikzpicture}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

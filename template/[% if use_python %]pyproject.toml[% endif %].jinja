@@ -1,0 +1,9 @@
+[project]
+name = "[[ course_slug ]]"
+version = "0.1.0"
+requires-python = ">=[[ python_version ]]"
+dependencies = [
+[% for pkg in python_packages.split() %]
+    "[[ pkg ]]",
+[% endfor %]
+]

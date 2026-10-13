@@ -1,0 +1,58 @@
+{
+  // ---------------------------------------------------------------- LaTeX Workshop
+  // Build with latexmk on save. All output (PDF, synctex, .aux, .log, ...) goes to
+  // build/ next to the .tex file.
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.latex.outDir": "%DIR%/build",
+  "latex-workshop.latex.recipe.default": "first",
+
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "latexmk",
+      "args": [
+        "-pdf",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-outdir=%DIR%/build",
+        "%DOC%"
+      ],
+      "env": {}
+    },
+    {
+      "name": "latexmk-clean",
+      "command": "latexmk",
+      "args": ["-c", "-outdir=%DIR%/build", "%DOC%"],
+      "env": {}
+    }
+  ],
+
+  "latex-workshop.latex.recipes": [
+    { "name": "latexmk (build only)",    "tools": ["latexmk"] },
+    { "name": "latexmk (build + clean)", "tools": ["latexmk", "latexmk-clean"] }
+  ],
+
+  // No auto-clean: keeping .aux/.fdb_latexmk lets latexmk do fast incremental rebuilds.
+  // Clean manually with the "LaTeX: Clean" task or LaTeX Workshop's "Clean up auxiliary files";
+  // both run `latexmk -c`, which clears build/ but keeps the .pdf and .synctex.gz.
+  "latex-workshop.latex.autoClean.run": "never",
+  "latex-workshop.latex.clean.method": "cleanCommand",
+  "latex-workshop.latex.clean.command": "latexmk",
+  "latex-workshop.latex.clean.args": ["-c", "-outdir=%DIR%/build", "%TEX%"],
+
+  "latex-workshop.view.pdf.viewer": "tab",
+[% if use_python %]
+
+  // Use the in-repo uv environment. Auto-activation stays off: it would type
+  // `source .../activate` into whatever terminal is focused (including Claude Code);
+  // use `uv run …` in terminals instead.
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": false,
+[% endif %]
+
+  // Hide macOS custom-folder-icon files from the explorer.
+  "files.exclude": {
+    "**/Icon\r": true
+  }
+}

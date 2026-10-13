@@ -1,0 +1,24 @@
+# LaTeX build output (everything goes to <doc>/build/ via latexmk -outdir=build)
+build/
+# ...and strays from a latexmk/pdflatex run without -outdir
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+Icon?

@@ -1,0 +1,151 @@
+[#= Escape LaTeX specials in answers (same set as scripts/course.sh latex_escape). =#]
+[% macro tex(s) %][[ s | replace('&', '\\&') | replace('%', '\\%') | replace('$', '\\$') | replace('#', '\\#') | replace('_', '\\_') ]][% endmacro %]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% course.sty — shared preamble for every write-up in this course repo
+% (homework/hwN/hwN.tex and notes/NN-topic/lecNN.tex).
+%
+% Documents load it with:
+%   \makeatletter\def\input@path{{../../tex/}}\makeatother
+%   \usepackage{course}
+% Edit macros/styles HERE, not in individual documents, so everything stays consistent.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{course}[2026/10/09 shared course preamble]
+
+% ---------------------------------------------------------------- Course / student info
+\newcommand{\coursecode}{[[ tex(course_code) ]]}
+\newcommand{\coursetitle}{[[ tex(course_title) ]]}
+\newcommand{\coursename}{\coursecode: \coursetitle}
+\newcommand{\courseterm}{[[ tex(term) ]]}
+\newcommand{\instructor}{[[ tex(instructor) ]]}
+\newcommand{\studentname}{[[ tex(student_name) ]]}
+\newcommand{\studentpid}{[[ tex(student_pid) ]]}
+\newcommand{\studentemail}{[[ tex(student_email) ]]}
+
+% ---------------------------------------------------------------- Packages
+\RequirePackage[margin=1in]{geometry}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lmodern}
+\RequirePackage{microtype}
+\RequirePackage{amsmath,amssymb,amsthm,mathtools,bm}
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{enumitem}
+\RequirePackage{fancyhdr}
+\RequirePackage{lastpage}
+\RequirePackage{booktabs}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,bayesnet,shadows}
+\RequirePackage{listings}
+\RequirePackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\RequirePackage[capitalize,nameinlink]{cleveref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8ex}
+\graphicspath{{figures/}}
+\setlength{\headheight}{14pt}
+
+% ---------------------------------------------------------------- Probability macros
+\renewcommand{\P}{P}                          % probability (overrides pilcrow)
+\newcommand{\E}{\mathbb{E}}                   % expectation
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\KL}[2]{D_{\mathrm{KL}}\!\left(#1\,\middle\|\,#2\right)}
+\newcommand{\given}{\,|\,}                    % P(X \given Y)
+\newcommand{\indep}{\perp\!\!\!\perp}         % X \indep Y \given Z
+\newcommand{\nindep}{\not\!\perp\!\!\!\perp}
+\newcommand{\ind}[1]{\mathbb{1}\!\left[#1\right]} % indicator
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\pa}{\mathrm{pa}}                 % parents in a belief network
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
+\newcommand{\eqdef}{\coloneqq}
+\newcommand{\Normal}{\mathcal{N}}
+
+% ---------------------------------------------------------------- Colors / belief networks
+\colorlet{probbg}{gray!6}                     % problem-box background; reuse as figure fill
+\tikzset{
+  bnnode/.style={circle, draw, thick, fill=probbg, minimum size=9mm,
+                 inner sep=1pt, font=\sffamily},
+  bnedge/.style={-{Stealth[length=2.5mm,width=2mm]}, thick},
+}
+
+% ---------------------------------------------------------------- Theorem-style envs
+% All share one counter (Definition 1, Theorem 2, ...). Lecture notes number it per
+% section with \counterwithin{thm}{section}.
+% Usage: \begin{definition}[Optional name] ... \end{definition}
+\theoremstyle{definition}
+\newtheorem{thm}{Theorem}                     % counter holder; use the named envs below
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{example}[thm]{Example}
+\theoremstyle{plain}
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{proposition}[thm]{Proposition}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{corollary}[thm]{Corollary}
+\newtheorem{claim}[thm]{Claim}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Colored left bar so formal statements are easy to scan for.
+\tcbset{thmbar/.style={blanker, breakable, left=3mm, before skip=1.5ex, after skip=1.5ex,
+                       borderline west={1.5pt}{0pt}{#1}}}
+\tcolorboxenvironment{definition}{thmbar=blue!50!black}
+\tcolorboxenvironment{theorem}{thmbar=red!50!black}
+\tcolorboxenvironment{proposition}{thmbar=red!50!black}
+\tcolorboxenvironment{lemma}{thmbar=red!30!black}
+\tcolorboxenvironment{corollary}{thmbar=red!30!black}
+\tcolorboxenvironment{claim}{thmbar=red!30!black}
+
+% ---------------------------------------------------------------- Note boxes
+% \begin{keyidea}[Title] ... \end{keyidea}   main takeaways (title defaults to "Key idea")
+\newtcolorbox{keyidea}[1][Key idea]{enhanced, breakable,
+  colback=green!4, colframe=green!40!black, boxrule=0.6pt, arc=2pt,
+  fonttitle=\bfseries, title={#1}}
+% \begin{question} ... \end{question}   things to ask / still unsure about
+\newtcolorbox{question}{enhanced, breakable,
+  colback=orange!6, colframe=orange!70!black, boxrule=0.6pt, arc=2pt,
+  fonttitle=\bfseries, title={Question}}
+% \begin{aside}[Title] ... \end{aside}   beyond the lecture: rigor, connections, derivations
+\newtcolorbox{aside}[1][Aside]{enhanced, breakable,
+  colback=probbg, colframe=gray!55!black, boxrule=0.4pt, arc=2pt,
+  fonttitle=\bfseries\itshape, title={#1}}
+
+% \slide{12} -> "[slide 12]" in gray: pointer back to the instructor's slides
+\newcommand{\slide}[1]{{\color{gray}\small[slide~#1]}}
+
+% ---------------------------------------------------------------- Problem / solution (homework)
+% \begin{problem}{1.1}{Title}{6}  ...statement...  \end{problem}
+\newtcolorbox{problem}[3]{
+  enhanced, breakable,
+  colback=probbg, colframe=gray!55!black,
+  fonttitle=\bfseries, boxrule=0.6pt, arc=2pt,
+  title={Problem #1: #2 \hfill (#3 pts)},
+}
+
+% \begin{solution} ... \end{solution}
+\newenvironment{solution}
+  {\par\medskip\noindent\textbf{Solution.}\par}
+  {\par\hfill$\blacksquare$\par\medskip}
+
+% \part{a} as a run-in heading for sub-parts inside a solution -> "(a)"
+% \part*{...} for a heading without the parentheses, e.g. \part*{$(1) \iff (2)$}
+\RenewDocumentCommand{\part}{s m}{%
+  \par\medskip\noindent\textbf{\boldmath\IfBooleanTF{#1}{#2}{(#2)}}\enspace}
+
+% ---------------------------------------------------------------- Code listings
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!60!black}\bfseries,
+  commentstyle=\color{green!40!black}\itshape,
+  stringstyle=\color{red!60!black},
+  numbers=left, numberstyle=\tiny\color{gray},
+  frame=single, rulecolor=\color{gray!50},
+  breaklines=true, showstringspaces=false, tabsize=4,
+  language=Python,
+}
+
+\endinput

@@ -1,0 +1,128 @@
+# [[ course_code ]] — [[ course_title ]] ([[ school ]], [[ term ]])
+
+Course folder for a [[ student_role ]] taking [[ course_code ]][% if cross_listed %] (cross-listed with [[ cross_listed ]])[% endif %]. Work here is
+LaTeX homework write-ups[% if use_python %], LaTeX lecture notes, and Python code[% else %] and LaTeX lecture notes[% endif %]. Pitch explanations at the
+user's level ([[ student_role ]]): be rigorous and skip intro-level explanations unless asked.[% if ai_guidance +%]
+[[ ai_guidance ]][% endif +%]
+
+## Layout
+
+```
+[[ course_code | replace(' ', '') ]]/
+├── README.md               # human-facing guide to the machinery below
+├── AGENTS.md / CLAUDE.md   # this file (CLAUDE.md just imports it)
+├── Makefile                # every build + scaffolding command (see below)
+├── tex/
+│   ├── course.sty          # shared preamble: course/student info, macros, envs, styles
+│   ├── hw_template.tex     # homework template (used by `make new-hw`)
+│   └── lecture_template.tex  # lecture-notes template (used by `make new-lec`)
+├── scripts/
+│   ├── course.sh           # scaffolding helpers behind the Makefile
+│   └── course.conf         # course-specific names (slide prefix, official PDF pattern)
+├── course/                 # instructor material not tied to one assignment — read-only
+│   ├── slides/             # lecNN-<topic>.pdf, lecNN-<topic>-annotated.pdf ("[[ annotated_marker ]]" versions)
+│   └── readings/           # papers, textbook chapters
+├── notes/                  # the user's own lecture notes
+│   └── NN-<topic>/
+│       ├── lecNN.tex
+│       ├── figures/
+│       └── build/          # latexmk output: lecNN.pdf, synctex, aux files
+├── homework/
+│   └── hwN/
+│       ├── hwN.tex         # the user's solutions (this is the file to edit)
+│       ├── build/          # latexmk output: hwN.pdf (what gets submitted), synctex, aux files
+│       ├── figures/        # images referenced by hwN.tex
+│       ├── code/           # the user's working copy of starter code + data it needs
+│       └── handout/        # course-provided files — read-only, never edit
+│           ├── [[ hw_pdf_pattern | replace('{N}', 'N') ]]   # official assignment PDF (source of truth)
+│           ├── main.tex                    # problem source
+│           └── ...                         # original figures, starter code, data
+├── exams/                  # practice exams + the user's review sheets
+└── projects/               # course projects, one folder each
+```
+
+Rule of thumb: instructor material is read-only and lives either in `course/` or, when it
+belongs to one assignment, in that assignment's `handout/`; everything else is the user's.
+Keep official homework PDFs named `[[ hw_pdf_pattern | replace('{N}', 'N') ]]` — never `hwN.pdf`, which is the
+build output's name. Starter code expects its data file beside it, so copy data into `code/`
+too; `handout/` keeps the untouched originals for diffing.
+
+Every `.tex` document lives exactly two levels below the root and loads the shared preamble via
+`\makeatletter\def\input@path{{../../tex/}}\makeatother \usepackage{course}` — keep new
+documents at that depth.
+
+## Commands (run from the repo root)
+
+- **Build:** `make hw2`, `make lec03`, `make homework`, `make notes`, or `make` for everything.
+  All output (PDF, synctex, aux) goes to the document's `build/`. `make watch-hw2` rebuilds on
+  save; `make clean-hw2` / `make clean` drop aux files but keep PDFs; `make distclean` removes
+  every `build/`. These wrap `latexmk -pdf -outdir=build <doc>.tex` — if calling latexmk directly,
+  always pass `-outdir=build`. Always compile after editing and fix errors/overfull boxes.
+- **New homework:** `make new-hw N=3 [DUE="Mon Oct 19, 11:59 PM PT"]` creates `homework/hw3/`
+  with `hw3.tex` (fields filled), `figures/`, `code/`, `handout/`.
+- **New lecture notes:** `make new-lec TOPIC="Junction Trees" [N=6] [DATE="..."]` creates
+  `notes/06-junction-trees/lec06.tex` (N defaults to next; DATE to today, `DATE=""` for none).
+- **Slides:** drop `[[ slide_prefix ]] NN.pdf` (and the annotated version, whose name contains
+  `[[ annotated_marker ]]`) into `course/slides/`, then
+  `make slides` (also run by `new-lec`) renames them to `lecNN-<topic>[-annotated].pdf` using the
+  topic of `notes/NN-<topic>/`.
+- **VS Code:** `.vscode/` has LaTeX Workshop settings (build on save to `build/`, no auto-clean)
+  and tasks `LaTeX: Compile`, `LaTeX: Clean`, `LaTeX: Compile + Clean` (Cmd+Shift+B).
+
+## Homework workflow (LaTeX)
+
+- **New assignment:** `make new-hw N=…`, put the course's files in `handout/`, then transcribe
+  each problem from `handout/main.tex`/PDF into a `problem` box followed by a `solution` block.
+  Copy figures into `figures/` with clean filenames (no spaces/parens), or redraw simple
+  diagrams in TikZ with the `bnnode`/`bnedge` styles so they blend into the problem box.
+- Transcribe problem statements **verbatim** — don't paraphrase, reorder, or "fix" them.
+  Cross-check against the official PDF, which is the source of truth if it differs from `main.tex`.
+- Each problem ends with `\clearpage` so Gradescope page-matching is one problem per page.
+- Submission is `homework/hwN/build/hwN.pdf` via Gradescope.
+
+## Lecture notes
+
+- The user writes their own notes in `notes/NN-<topic>/lecNN.tex`; the instructor's slides are
+  in `course/slides/` (cite them in notes with `\slide{12}`).
+- Note-taking environments (from `course.sty`): `definition`, `theorem`, `lemma`, `proposition`,
+  `corollary`, `claim`, `example`, `remark`, plus boxes `keyidea` (takeaways), `question`
+  (follow-ups), `aside` (rigor/connections beyond lecture). Numbered per section in notes.
+
+## Shared LaTeX conventions (`tex/course.sty` — use these, don't reinvent)
+
+- Homework environments: `\begin{problem}{1.1}{Title}{pts}`, `\begin{solution}`, `\part{a}` for
+  sub-part headings inside a solution (`\part*{...}` drops the parentheses); in homework,
+  `enumerate` defaults to (a), (b), ...
+- Macros: `\P` (probability, plain P), `\E`, `\Var`, `\Cov`, `\KL{p}{q}`, `\given` (conditioning bar),
+  `\indep` / `\nindep` (conditional independence ⫫), `\ind{...}` (indicator), `\pa` (parents),
+  `\iid`, `\argmax`, `\argmin`, `\R`, `\N`, `\Normal`.
+- Belief networks: TikZ with the `bnnode` / `bnedge` styles (filled with `probbg`, the problem-box
+  background); the `bayesnet` library (`\node[latent]`, `\node[obs]`, `\edge`) is also loaded.
+- Code in write-ups: `lstlisting` (Python is the default language).
+- Course/student info (`\coursename`, `\instructor`, `\studentname`, ...) is set once in `course.sty`.
+- If a new macro is broadly useful, add it to `course.sty` **and** mention it here.
+
+[% if use_python %]
+## Code projects (Python)
+
+- Python via uv: `pyproject.toml`/`uv.lock` at the root, environment in the in-repo `.venv/`
+  (gitignored; no direnv). Run things with `uv run …`; add packages with `uv add`. Prefer
+  numpy/scipy; matplotlib for plots. Code goes in `homework/hwN/code/` or `projects/<name>/`.
+- Keep scripts reproducible: fix random seeds, save figures to a `figures/` folder as PDF
+  (vector) so they drop straight into the LaTeX write-up.
+- Be careful with numerical stability (work in log-space for likelihoods/products of
+  probabilities, use `logsumexp`).
+
+[% endif %]
+## How to help
+
+- Default to being a rigorous collaborator: checking proofs for gaps, catching edge cases
+  (zero-probability conditioning events, support assumptions, discrete vs. continuous),
+  explaining concepts, debugging LaTeX and code.
+- **Do not write full homework solutions into `hwN.tex` unless the user explicitly asks.**
+  Course academic-integrity rules apply; prefer hints, verification of the user's own
+  work, and LaTeX/typesetting help.
+- Never modify anything in `handout/` or `course/` (course-provided `main.tex`, official PDFs,
+  slides, original starter code) — renaming new drop-ins via `make slides` is the exception.
+- The repo is under git. Keep any remote **private**: it holds homework solutions and the
+  instructor's materials.
